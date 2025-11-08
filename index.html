@@ -3,350 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قوافل محمد رجب الخيريه | أداة تخفيف الشيتات</title>
-    <!-- تحميل مكتبة Tailwind CSS -->
+    <title>قوافل محمد رجب الخيرية | أداة تخفيف الشيتات الفاخرة</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- تحميل مكتبة SheetJS (xlsx.full.min.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
+        body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .gold-gradient { background: linear-gradient(45deg, #f59e0b, #fbbf24, #fde68a, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card-shadow { box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 100px rgba(251, 191, 36, 0.2); }
+        .btn-glow { box-shadow: 0 0 30px rgba(251, 191, 36, 0.6); transition: all 0.3s; }
+        .btn-glow:hover { transform: translateY(-4px); box-shadow: 0 0 50px rgba(251, 191, 36, 0.9); }
+        .sticky-header { position: sticky; top: 0; z-index: 40; background: #1e293b !important; }
+        .sticky-col { position: sticky; right: 0; z-index: 30; background: #f59e0b !important; color: #1e293b; font-weight: 900; }
+        .tab-active { background: linear-gradient(45deg, #f59e0b, #fbbf24); color: #1e293b; }
+        .zoom-btn:hover { transform: scale(1.3) rotate(90deg); }
+        #preview-container { scrollbar-color: #f59e0b #1e293b; }
+        #preview-container::-webkit-scrollbar { height: 12px; width: 12px; }
+        #preview-container::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
+        #preview-container::-webkit-scrollbar-thumb { background: linear-gradient(#f59e0b, #fbbf24); border-radius: 10px; }
+        
+        /* تحسين المعاينة */
+        #preview-container table { 
+            direction: rtl; 
+            width: 100%; 
+            min-width: 1200px; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            font-size: 1rem; 
         }
-
-        /* تعريف حركات الأنيميشن */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        #preview-container th, #preview-container td { 
+            padding: 12px 16px; 
+            text-align: right; 
+            border: 2px solid rgba(251, 191, 36, 0.5); 
+            background: rgba(255, 255, 255, 0.05); 
         }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        #preview-container th { 
+            background: linear-gradient(45deg, #1e293b, #334155); 
+            color: #fbbf24; 
+            font-weight: 900; 
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); 
         }
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
-        }
-        .animate-slide-up {
-            animation: slideUp 0.7s ease-out forwards;
-        }
-
-
-        /* تصميم زر رفع الملفات */
-        input[type="file"]::file-selector-button {
-            border-radius: 0.375rem;
-            padding: 0.625rem 1.25rem;
-            border: none;
-            font-weight: 600;
-            color: #ffffff;
-            background-color: #3B82F6; /* أزرق */
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            margin-left: 1rem;
-        }
-
-        input[type="file"]::file-selector-button:hover {
-            background-color: #2563EB;
-        }
-
-        /* تصميم لجدول المعاينة */
-        #preview-container table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem; /* 14px */
-        }
-        #preview-container th, 
-        #preview-container td {
-            border: 1px solid #e2e8f0; /* لون حدود أفتح */
-            padding: 0.5rem 0.75rem; /* بادينج مناسب */
-            text-align: right;
-            white-space: nowrap; /* منع الكلام من النزول لسطر جديد في المعاينة */
-        }
-        #preview-container th {
-            background-color: #f8f9fa; /* لون هيدر فاتح */
-            font-weight: 600;
-            position: sticky; /* تثبيت الهيدر عند السكرول الأفقي */
-            top: 0;
-            z-index: 10;
-        }
-        #preview-container tr:nth-child(even) {
-            background-color: #fdfdfd;
-        }
+        #preview-container tr:nth-child(even) td { background: rgba(255, 255, 255, 0.1); }
+        #preview-container .gold-cell { color: #fbbf24; font-weight: bold; }
+        #preview-container .empty-id { color: #ef4444; font-style: italic; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-100 to-green-100 min-h-screen flex items-center justify-center p-4">
+<body class="text-white">
 
-    <div class="container mx-auto max-w-2xl w-full">
-        <div class="bg-white rounded-lg shadow-2xl p-8 text-center animate-slide-up">
-            
-            <!-- 1. العنوان والوصف (تم التعديل) -->
-            <h1 class="text-3xl font-bold text-blue-700 mb-2 animate-slide-up" style="animation-delay: 100ms;">قوافل محمد رجب الخيريه</h1>
-            <p class="text-gray-600 mb-6 animate-slide-up" style="animation-delay: 200ms;">
-                ارفع ملف الإكسل التقيل، وسنقوم بحذف المعادلات، تنظيف البيانات، وتنسيق الجدول ثم يمكنك معاينته وتحميله.
-            </p>
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    <div class="glass rounded-3xl card-shadow p-8 md:p-12 text-center">
+        <div class="mb-8">
+            <h1 class="text-5xl md:text-7xl font-extrabold gold-gradient mb-4 tracking-wider">
+                قوافل محمد رجب الخيرية
+            </h1>
+            <p class="text-2xl md:text-3xl gold-gradient font-bold">أداة تخفيف الشيتات الفاخرة</p>
+            <p class="text-lg md:text-xl text-amber-200 mt-4">حذف المعادلات • تنظيف الرقم القومي (أرقام فقط) • الخانة فاضية = فاضية • معاينة فورية واضحة • نسخ للواتساب</p>
+        </div>
 
-            <!-- جديد: كلمة عن العمل الخيري -->
-            <div class="border-t border-b border-gray-200 py-4 my-6 animate-slide-up" style="animation-delay: 300ms;">
-                <p class="text-lg italic text-green-700">
-                    "العمل الخيري... بذرة أمل نزرعها اليوم، لتزهر غدًا بالتفاؤل"
-                </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
+            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
+                <p class="text-xl italic gold-gradient font-Amiri">"العطاء لا ينقص من المال، بل يزيد من البركة"</p>
             </div>
-            <div class="border-t border-b border-gray-200 py-4 my-6 animate-slide-up" style="animation-delay: 300ms;">
-                <p class="text-lg italic text-green-700">
-                    "الخير الحقيقي هو ما لا تنتظر مقابله: قمة العمل الخيري تكمن في أن تقدم المساعدة للآخرين بدافع إنساني بحت، دون توقع شكر أو رد للجميل."
-                </p>
+            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
+                <p class="text-xl italic gold-gradient font-Amiri">"خير الناس أنفعهم للناس"</p>
             </div>
-            <!-- 2. زر رفع الملف -->
-            <input type="file" id="file-upload" class="block w-full text-sm text-gray-500 animate-slide-up" style="animation-delay: 400ms;" accept=".xlsx, .xls">
-
-            <!-- 3. منطقة الحالة والتحميل -->
-            <div id="loading-spinner" class="mt-6 hidden">
-                <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
+                <p class="text-xl italic gold-gradient font-Amiri">"بذرة خير اليوم = حديقة أمل غداً"</p>
             </div>
-            <p id="status-message" class="text-sm text-gray-500 mt-2">
-                جاهز لرفع الملف...
-            </p>
+        </div>
 
-            <!-- 3.5. منطقة المعاينة (جديد) -->
-            <div id="preview-area" class="mt-6 hidden">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2">معاينة الملف النظيف (أول شيت):</h3>
-                <div id="preview-container" class="max-h-72 overflow-y-auto overflow-x-auto border border-gray-300 rounded-lg bg-white shadow-inner">
-                    <!-- سيتم إدراج الجدول هنا بواسطة الجافاسكريبت -->
+        <div class="my-12">
+            <input type="file" id="file-upload" class="block w-full text-lg file:mr-6 file:py-6 file:px-12 file:rounded-full file:border-0 file:text-xl file:font-bold file:bg-gradient-to-r file:from-amber-500 file:to-yellow-600 file:text-amber-900 hover:file:from-amber-600 hover:file:to-yellow-700 file:shadow-2xl file:btn-glow cursor-pointer" accept=".xlsx,.xls">
+        </div>
+
+        <div id="loading-spinner" class="hidden my-12">
+            <div class="flex flex-col items-center space-y-6">
+                <div class="relative">
+                    <svg class="animate-spin h-24 w-24 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-4xl gold-gradient font-bold">✨</span>
+                    </div>
+                </div>
+                <p id="loading-text" class="text-2xl gold-gradient font-bold">جاري السحر...</p>
+            </div>
+        </div>
+
+        <p id="status-message" class="text-xl text-amber-200">جاهز لاستقبال الملف  👑</p>
+
+        <div id="preview-area" class="mt-12 hidden">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div id="preview-tabs" class="flex overflow-x-auto space-x-reverse space-x-4 pb-2"></div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button id="zoom-in" class="zoom-btn bg-amber-600 text-amber-900 p-4 rounded-full btn-glow text-2xl font-bold">+</button>
+                    <button id="zoom-out" class="zoom-btn bg-amber-600 text-amber-900 p-4 rounded-full btn-glow text-2xl font-bold">−</button>
+                    <button id="copy-image" class="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-4 rounded-full btn-glow font-bold text-xl flex items-center gap-3">
+                        <span>📋 نسخ للواتساب</span>
+                    </button>
+                    <button id="share-whatsapp" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-full btn-glow font-bold text-xl">واتساب مباشرة 📱</button>
                 </div>
             </div>
-
-            <!-- 4. أزرار الإجراءات (تم التعديل والتبسيط) -->
-            <div id="actions-container" class="mt-6 flex justify-center hidden"> <!-- تم إزالة gap-4 -->
-                <!-- زر التحميل -->
-                <button id="download-button" class="w-full max-w-md bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 transition duration-200"> <!-- تعديل: استخدام w-full و max-w-md -->
-                    تحميل الشيت
-                </button>
-                <!-- تم حذف زر "فتح (معاينة أونلاين)" -->
-            </div>
-
+            <div id="preview-container" class="glass rounded-2xl overflow-auto max-h-96 border-2 border-amber-500/50 card-shadow p-4"></div>
         </div>
 
-        <!-- فوتر جديد باسم المطور -->
-        <div class="text-center text-gray-500 text-sm mt-4 animate-fade-in" style="animation-delay: 600ms;">
-            <p>تم تصميم الموقع بواسطه محمد مبروك</p>
-            <p>01020114049</p>
+        <div id="actions-container" class="mt-12 hidden">
+            <button id="download-button" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 text-amber-900 font-bold py-8 px-16 rounded-3xl card-shadow btn-glow hover:from-amber-600 hover:to-yellow-700 transition text-3xl md:text-4xl">
+                📥 تحميل الملف النظيف الفاخر
+            </button>
         </div>
-
     </div>
 
-    <script>
-        const fileUpload = document.getElementById('file-upload');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const statusMessage = document.getElementById('status-message');
-        const actionsContainer = document.getElementById('actions-container'); // تعديل: من download-container
-        const downloadButton = document.getElementById('download-button');
-        // تم حذف const openOnlineButton
-        const previewArea = document.getElementById('preview-area');
-        const previewContainer = document.getElementById('preview-container');
+    <div class="text-center text-amber-300 text-lg mt-12 glass rounded-2xl p-6 card-shadow">
+        <p class="font-bold text-2xl gold-gradient">تم التطوير بواسطة: محمد مبروك</p>
+        <p class="text-xl">📞 01020114049 | ✨ نسخة2025</p>
+    </div>
+</div>
 
-        let processedFileBlob = null;
-        let originalFileName = '';
-        // تم حذف let generatedHtmlTable
+<script>
+    const fileUpload = document.getElementById('file-upload');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const loadingText = document.getElementById('loading-text');
+    const statusMessage = document.getElementById('status-message');
+    const previewArea = document.getElementById('preview-area');
+    const previewTabs = document.getElementById('preview-tabs');
+    const previewContainer = document.getElementById('preview-container');
+    const actionsContainer = document.getElementById('actions-container');
+    const downloadButton = document.getElementById('download-button');
+    const zoomIn = document.getElementById('zoom-in');
+    const zoomOut = document.getElementById('zoom-out');
+    const copyImage = document.getElementById('copy-image');
+    const shareWhatsapp = document.getElementById('share-whatsapp');
 
-        // --- الهيدر الجديد المطلوب ---
-        // "م", "اسم الزوج", "الرقم القومي", "اسم الزوجه", "رقم القومي للزوجه", "الحاله", "العنوان", "رقم 1", "رقم 2", (5 خانات فاضية), "تم استلام البون"
-        const newHeader = [
-            "م", "اسم الزوج", "الرقم القومي", "اسم الزوجه", "رقم القومي للزوجه", 
-            "الحاله", "العنوان", "رقم 1", "رقم 2", 
-            "", "", "", "", "", // 5 خانات فاضية
-            "تم استلام البون"
-        ];
+    let processedFileBlob = null;
+    let originalFileName = '';
+    let workbook = null;
+    let currentZoom = 1;
 
-        fileUpload.addEventListener('change', handleFile);
-        downloadButton.addEventListener('click', downloadFile);
-        // تم حذف event listener لـ openOnlineButton
+    const newHeader = ["م", "اسم الزوج", "الرقم القومي", "اسم الزوجه", "رقم القومي للزوجه", "الحاله", "العنوان", "رقم 1", "رقم 2", "", "", "", "", "", "تم استلام البون"];
+    const idColumns = [2, 4]; // الرقم القومي للزوج والزوجة
 
-        function setLoadingState(isLoading, message) {
-            statusMessage.textContent = message;
-            if (isLoading) {
-                loadingSpinner.classList.remove('hidden');
-            } else {
-                loadingSpinner.classList.add('hidden');
-            }
-        }
+    fileUpload.addEventListener('change', handleFile);
+    downloadButton.addEventListener('click', downloadFile);
+    zoomIn.addEventListener('click', () => { currentZoom += 0.15; updateZoom(); });
+    zoomOut.addEventListener('click', () => { currentZoom = Math.max(0.6, currentZoom - 0.15); updateZoom(); });
+    copyImage.addEventListener('click', copyAsImage);
+    shareWhatsapp.addEventListener('click', shareOnWhatsapp);
 
-        async function handleFile(event) {
-            const file = event.target.files[0];
-            if (file) {
-                originalFileName = file.name;
-                setLoadingState(true, 'جاري قراءة الملف...');
-                actionsContainer.classList.add('hidden'); // تعديل: إخفاء أزرار الإجراءات
-                previewArea.classList.add('hidden'); // إخفاء المعاينة القديمة
-                previewContainer.innerHTML = '';
-                processedFileBlob = null; // مسح الملف القديم
-                
-                try {
-                    const data = await file.arrayBuffer();
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    
-                    setLoadingState(true, 'جاري تنظيف البيانات وتنسيق الجدول...');
+    function setLoading(loading, text = "جاري السحر...") {
+        loadingText.textContent = text;
+        loading ? loadingSpinner.classList.remove('hidden') : loadingSpinner.classList.add('hidden');
+    }
 
-                    // --- الخطوة 1: إضافة الهيدر الجديد وتجاهل القديم ---
-                    workbook.SheetNames.forEach(sheetName => {
-                        const worksheet = workbook.Sheets[sheetName];
-                        
-                        // قراءة البيانات القديمة بدون الهيدر
-                        // header: 1 يعني أننا نتجاهل السطر الأول (الهيدر القديم)
-                        const oldData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
-                        const dataWithoutOldHeader = oldData.slice(1); // تجاهل السطر الأول
+    function updateZoom() {
+        previewContainer.style.transform = `scale(${currentZoom})`;
+        previewContainer.style.transformOrigin = 'top right';
+    }
 
-                        // مسح الشيت القديم
-                        XLSX.utils.sheet_add_aoa(worksheet, [], { origin: 'A1' });
+    async function handleFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-                        // إضافة الهيدر الجديد أولاً
-                        XLSX.utils.sheet_add_aoa(worksheet, [newHeader], { origin: 'A1' });
-                        
-                        // إضافة باقي البيانات تحت الهيدر الجديد
-                        XLSX.utils.sheet_add_json(worksheet, dataWithoutOldHeader, { origin: 'A2', skipHeader: true });
-                    });
-                    
-                    // --- الخطوة 2: معالجة الخلايا (تنظيف ومعالجة الأرقام) ---
-                    workbook.SheetNames.forEach(sheetName => {
-                        const worksheet = workbook.Sheets[sheetName];
-                        const range = XLSX.utils.decode_range(worksheet['!ref']);
-                        const colWidths = {};
+        originalFileName = file.name.replace(/\.[^/.]+$/, "");
+        setLoading(true, 'جاري قراءة الملف الملكي...');
+        previewArea.classList.add('hidden');
+        actionsContainer.classList.add('hidden');
+        previewTabs.innerHTML = '';
+        previewContainer.innerHTML = '';
+        processedFileBlob = null;
 
-                        for (let R = range.s.r; R <= range.e.r; ++R) {
-                            for (let C = range.s.c; C <= range.e.c; ++C) {
-                                const cell_address = { c: C, r: R };
-                                const cell_ref = XLSX.utils.encode_cell(cell_address);
-                                const cell = worksheet[cell_ref];
+        try {
+            const data = await file.arrayBuffer();
+            workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
-                                if (!cell) continue;
+            setLoading(true, 'تنظيف البيانات وتحويل الرقم القومي لأرقام فقط...');
 
-                                // (أ) حذف المعادلات (القيم فقط)
-                                if (cell.f) {
-                                    delete cell.f; // حذف المعادلة
-                                    // القيمة (v) موجودة بالفعل، لذلك لا داعي لتغييرها
-                                }
+            workbook.SheetNames.forEach(sheetName => {
+                const ws = workbook.Sheets[sheetName];
+                const oldData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false });
+                const dataWithoutHeader = oldData.slice(1) || [];
 
-                                // (ب) معالجة الأرقام كنص
-                                if (cell.t === 's' || cell.t === 'str') {
-                                    const value = String(cell.v).trim();
-                                    
-                                    // التحقق إذا كانت القيمة رقمية بحتة
-                                    if (/^\d+$/.test(value)) {
-                                        // إذا كان رقمًا طويلاً (مثل الرقم القومي > 11 رقم) أو يبدأ بصفر
-                                        if (value.length > 11 || value.startsWith('0')) {
-                                            cell.t = 's'; // اتركه كنص
-                                            cell.v = value; // تأكيد القيمة
-                                        } else {
-                                            // إذا كان رقمًا عاديًا، حوله لرقم
-                                            const num = Number(value);
-                                            cell.t = 'n';
-                                            cell.v = num;
-                                        }
-                                    } else if (cell.w && /^\d+$/.test(cell.w.trim())) {
-                                        // حالة خاصة: أرقام مخزنة كنص بعلامة '
-                                        const cleanValue = cell.w.trim();
-                                        if (cleanValue.length > 11 || cleanValue.startsWith('0')) {
-                                            cell.t = 's';
-                                            cell.v = cleanValue;
-                                        } else {
-                                            cell.t = 'n';
-                                            cell.v = Number(cleanValue);
-                                        }
-                                    }
-                                } else if (cell.t === 'n') {
-                                    // تأكيد أن الأرقام الطويلة تبقى كنص إذا تم تفسيرها خطأ
-                                    if (cell.v > 9007199254740991) { // أكبر من الحد الآمن للجافاسكريبت
+                XLSX.utils.sheet_add_aoa(ws, [], { origin: 'A1' });
+                XLSX.utils.sheet_add_aoa(ws, [newHeader], { origin: 'A1' });
+                XLSX.utils.sheet_add_json(ws, dataWithoutHeader, { origin: 'A2', skipHeader: true });
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                const colWidths = [];
+
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell = ws[XLSX.utils.encode_cell({ c: C, r: R })];
+                        if (!cell) continue;
+
+                        if (cell.f) delete cell.f;
+
+                        // تنظيف الرقم القومي: أرقام فقط + لو فاضي يسيب فاضي (مش أصفار)
+                        if (idColumns.includes(C) && R > 0) {
+                            if (cell.v != null && cell.v !== '') {
+                                const raw = String(cell.v).trim();
+                                if (raw !== '') {
+                                    const cleanId = raw.replace(/\D/g, '').slice(0, 14); // أرقام فقط، أقصى 14
+                                    if (cleanId !== '') {
+                                        cell.v = cleanId;
+                                        cell.t = 's'; // نص عشان ما يتحولش scientific
+                                        cell.z = '0';
+                                    } else {
+                                        // لو بعد التنظيف مفيش أرقام → خليه فاضي
+                                        cell.v = '';
                                         cell.t = 's';
-                                        cell.v = String(cell.v);
                                     }
-                                }
-
-                                // --- تتبع عرض العمود ---
-                                const cellLength = cell.v ? String(cell.v).length + 2 : 10; // +2 للمسافة
-                                if (!colWidths[C] || cellLength > colWidths[C]) {
-                                    colWidths[C] = cellLength;
                                 }
                             }
                         }
 
-                        // --- الخطوة 3: تطبيق تنسيق "جدول" وتوسيع الأعمدة ---
-                        
-                        // (أ) تطبيق فلتر الجدول (لعمل "جدول نضيف")
-                        // يتم تحديث النطاق ليشمل الهيدر الجديد والبيانات
-                        const newRange = XLSX.utils.decode_range(worksheet['!ref']);
-                        worksheet['!autofilter'] = { ref: XLSX.utils.encode_range(newRange) };
-                        
-                        // (ب) حساب وتطبيق عرض الأعمدة (توسيع تلقائي)
-                        const cols = [];
-                        for (let C = range.s.c; C <= range.e.c; ++C) {
-                            let width = colWidths[C] || 15; // عرض افتراضي
-                            if (width > 60) width = 60; // حد أقصى للعرض
-                            cols.push({ wch: width });
+                        if (cell.t === 'n' && cell.v > 9007199254740991) {
+                            cell.t = 's';
+                            cell.v = cell.v.toString();
                         }
-                        worksheet['!cols'] = cols;
 
-                    });
-
-                    // --- الخطوة 4: إنشاء المعاينة ---
-                    const firstSheetName = workbook.SheetNames[0];
-                    const firstWorksheet = workbook.Sheets[firstSheetName];
-                    
-                    if (firstWorksheet) {
-                        setLoadingState(true, 'جاري إنشاء المعاينة...');
-                        const htmlTable = XLSX.utils.sheet_to_html(firstWorksheet);
-                        // تم حذف generatedHtmlTable = htmlTable;
-                        previewContainer.innerHTML = htmlTable;
-                        previewArea.classList.remove('hidden');
-                    } else {
-                        previewArea.classList.add('hidden'); 
-                        previewContainer.innerHTML = '';
+                        const len = String(cell.v || '').length + 4;
+                        colWidths[C] = Math.max(colWidths[C] || 12, Math.min(len, 50));
                     }
-
-                    // --- الخطوة 5: إنشاء الملف الجديد ---
-                    setLoadingState(true, 'جاري إنشاء الملف الجديد...');
-                    
-                    const new_data = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-                    processedFileBlob = new Blob([new_data], { type: 'application/octet-stream' });
-                    
-                    // --- الخطوة 6: إظهار أزرار الإجراءات ---
-                    setLoadingState(false, 'تمت المعالجة بنجاح! الملف جاهز للمعاينة والتحميل.');
-                    actionsContainer.classList.remove('hidden'); // تعديل: إظهار الأزرار
-                    
-                } catch (error) {
-                    console.error("خطأ في معالجة الملف:", error);
-                    setLoadingState(false, 'حدث خطأ أثناء معالجة الملف. حاول مرة أخرى.');
                 }
-            }
+
+                ws['!cols'] = colWidths.map(w => ({ wch: w }));
+                ws['!autofilter'] = { ref: ws['!ref'] };
+            });
+
+            const newWB = XLSX.utils.book_new();
+            workbook.SheetNames.forEach(name => {
+                XLSX.utils.book_append_sheet(newWB, workbook.Sheets[name], name);
+            });
+            const newData = XLSX.write(newWB, { bookType: 'xlsx', type: 'array', compression: true });
+            processedFileBlob = new Blob([newData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+            renderPreview();
+
+            setLoading(false);
+            statusMessage.textContent = `تم معالجة ${workbook.SheetNames.length} شيت بفخامة! الخانة فاضية = فاضية 👑`;
+            actionsContainer.classList.remove('hidden');
+            previewArea.classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+            statusMessage.textContent = 'خطأ في الملف! تأكد من صيغة الإكسل.';
+            alert('حدث خطأ: ' + err.message);
         }
-        
-        function downloadFile() {
-            if (processedFileBlob) {
-                const url = URL.createObjectURL(processedFileBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                // تعديل اسم الملف ليصبح "نظيف_" + الاسم الأصلي
-                a.download = 'نظيف_' + originalFileName;
-                document.body.appendChild(a);
-                a.click();
-                URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+    }
+
+    function renderPreview() {
+        previewTabs.innerHTML = '';
+        previewContainer.innerHTML = '<p class="text-center text-2xl text-amber-400">جاري تحميل المعاينة...</p>';
+
+        workbook.SheetNames.forEach((name, idx) => {
+            const tab = document.createElement('button');
+            tab.className = `px-8 py-4 rounded-t-2xl font-bold text-lg transition ${idx === 0 ? 'tab-active text-amber-900' : 'glass hover:bg-amber-500/30'}`;
+            tab.textContent = name;
+            tab.onclick = () => {
+                document.querySelectorAll('#preview-tabs button').forEach(t => t.classList.remove('tab-active', 'text-amber-900'));
+                tab.classList.add('tab-active', 'text-amber-900');
                 
-                setLoadingState(false, 'تم تنزيل الملف. يمكنك رفع ملف آخر.');
-                fileUpload.value = ''; // إعادة تعيين حقل الرفع
-                actionsContainer.classList.add('hidden'); // تعديل: إخفاء الأزرار
-                previewArea.classList.add('hidden'); // إخفاء المعاينة بعد التحميل
-                previewContainer.innerHTML = '';
-                processedFileBlob = null;
-                // تم حذف generatedHtmlTable = '';
-            }
+                let html = '<table class="min-w-full table-auto border-collapse text-lg"><thead><tr>';
+                const ws = workbook.Sheets[name];
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell = ws[XLSX.utils.encode_cell({ c: C, r: 0 })];
+                    html += `<th class="gold-gradient font-extrabold">${cell ? cell.v : ''}</th>`;
+                }
+                html += '</tr></thead><tbody>';
+
+                const maxRows = Math.min(range.e.r + 1, 200);
+                for (let R = 1; R < maxRows; ++R) {
+                    html += '<tr>';
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell = ws[XLSX.utils.encode_cell({ c: C, r: R })];
+                        let value = '';
+                        let cellClass = '';
+                        if (cell && cell.v != null) {
+                            if (idColumns.includes(C)) {
+                                if (cell.v === '') {
+                                    value = '<span class="empty-id">فاضية</span>';
+                                } else {
+                                    value = `<span class="gold-cell">${cell.v}</span>`;
+                                }
+                            } else {
+                                value = cell.v;
+                            }
+                        }
+                        html += `<td class="${cellClass}">${value}</td>`;
+                    }
+                    html += '</tr>';
+                }
+                if (range.e.r >= 200) {
+                    html += `<tr><td colspan="${range.e.c + 1}" class="text-center text-amber-400 font-bold">... و ${range.e.r - 199} صف آخر</td></tr>`;
+                }
+                html += '</tbody></table>';
+                
+                previewContainer.innerHTML = html;
+                makeTableFakhma();
+            };
+            previewTabs.appendChild(tab);
+        });
+
+        if (workbook.SheetNames.length > 0) {
+            previewTabs.firstChild?.click();
+        } else {
+            previewContainer.innerHTML = '<p class="text-center text-red-400">لا توجد بيانات!</p>';
+        }
+    }
+
+    function makeTableFakhma() {
+        const table = previewContainer.querySelector('table');
+        if (!table) return;
+        table.querySelectorAll('th').forEach(th => th.classList.add('sticky-header'));
+        table.querySelectorAll('td:first-child, th:first-child').forEach(c => c.classList.add('sticky-col'));
+    }
+
+    function downloadFile() {
+        if (!processedFileBlob || !originalFileName) {
+            alert('الملف غير جاهز!');
+            return;
         }
 
-        // --- تم حذف وظيفة "openOnline" بالكامل ---
+        try {
+            const url = URL.createObjectURL(processedFileBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `نظيف_فاخر_${originalFileName}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-    </script>
+            statusMessage.textContent = 'تم التحميل بفخامة! جاهز للملف التالي 👑';
+            fileUpload.value = '';
+            processedFileBlob = null;
+        } catch (e) {
+            console.error(e);
+            alert('فشل التحميل! جرب كروم أو فايرفوكس');
+        }
+    }
+
+    async function copyAsImage() {
+        copyImage.disabled = true;
+        copyImage.innerHTML = 'جاري النسخ السحري...';
+        try {
+            const canvas = await html2canvas(previewContainer, { scale: 3, backgroundColor: '#1e293b', useCORS: true });
+            canvas.toBlob(blob => {
+                navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                alert('تم نسخ الجدول بفخامة! الصقه في واتساب الآن ✨');
+            });
+        } catch (e) { 
+            alert('فشل النسخ، جرب لقطة شاشة يدوية'); 
+        }
+        copyImage.disabled = false;
+        copyImage.innerHTML = '<span>📋 نسخ للواتساب</span>';
+    }
+
+    function shareOnWhatsapp() {
+        if (!processedFileBlob) {
+            alert('ارفع ملف أولاً!');
+            return;
+        }
+        const url = URL.createObjectURL(processedFileBlob);
+        const waUrl = `https://api.whatsapp.com/send?text=ملف نظيف فاخر من قوافل محمد رجب 👑%0A${originalFileName}.xlsx%0A${encodeURIComponent(url)}`;
+        window.open(waUrl, '_blank');
+    }
+</script>
 </body>
 </html>
-
-
-
