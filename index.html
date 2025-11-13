@@ -23,8 +23,6 @@
         #preview-container::-webkit-scrollbar { height: 12px; width: 12px; }
         #preview-container::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
         #preview-container::-webkit-scrollbar-thumb { background: linear-gradient(#f59e0b, #fbbf24); border-radius: 10px; }
-        
-        /* تحسين المعاينة */
         #preview-container table { 
             direction: rtl; 
             width: 100%; 
@@ -62,18 +60,6 @@
             <p class="text-lg md:text-xl text-amber-200 mt-4">حذف المعادلات • تنظيف الرقم القومي (أرقام فقط) • الخانة فاضية = فاضية • معاينة فورية واضحة • نسخ للواتساب</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
-            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
-                <p class="text-xl italic gold-gradient font-Amiri">"العطاء لا ينقص من المال، بل يزيد من البركة"</p>
-            </div>
-            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
-                <p class="text-xl italic gold-gradient font-Amiri">"خير الناس أنفعهم للناس"</p>
-            </div>
-            <div class="glass rounded-2xl p-6 border border-amber-500/50 card-shadow">
-                <p class="text-xl italic gold-gradient font-Amiri">"بذرة خير اليوم = حديقة أمل غداً"</p>
-            </div>
-        </div>
-
         <div class="my-12">
             <input type="file" id="file-upload" class="block w-full text-lg file:mr-6 file:py-6 file:px-12 file:rounded-full file:border-0 file:text-xl file:font-bold file:bg-gradient-to-r file:from-amber-500 file:to-yellow-600 file:text-amber-900 hover:file:from-amber-600 hover:file:to-yellow-700 file:shadow-2xl file:btn-glow cursor-pointer" accept=".xlsx,.xls">
         </div>
@@ -98,14 +84,6 @@
         <div id="preview-area" class="mt-12 hidden">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <div id="preview-tabs" class="flex overflow-x-auto space-x-reverse space-x-4 pb-2"></div>
-                <div class="flex flex-wrap justify-center gap-4">
-                    <button id="zoom-in" class="zoom-btn bg-amber-600 text-amber-900 p-4 rounded-full btn-glow text-2xl font-bold">+</button>
-                    <button id="zoom-out" class="zoom-btn bg-amber-600 text-amber-900 p-4 rounded-full btn-glow text-2xl font-bold">−</button>
-                    <button id="copy-image" class="bg-gradient-to-r from-green-600 to-emerald-700 text-white px-8 py-4 rounded-full btn-glow font-bold text-xl flex items-center gap-3">
-                        <span>📋 نسخ للواتساب</span>
-                    </button>
-                    <button id="share-whatsapp" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-full btn-glow font-bold text-xl">واتساب مباشرة 📱</button>
-                </div>
             </div>
             <div id="preview-container" class="glass rounded-2xl overflow-auto max-h-96 border-2 border-amber-500/50 card-shadow p-4"></div>
         </div>
@@ -133,34 +111,20 @@
     const previewContainer = document.getElementById('preview-container');
     const actionsContainer = document.getElementById('actions-container');
     const downloadButton = document.getElementById('download-button');
-    const zoomIn = document.getElementById('zoom-in');
-    const zoomOut = document.getElementById('zoom-out');
-    const copyImage = document.getElementById('copy-image');
-    const shareWhatsapp = document.getElementById('share-whatsapp');
 
     let processedFileBlob = null;
     let originalFileName = '';
     let workbook = null;
-    let currentZoom = 1;
 
     const newHeader = ["م", "اسم الزوج", "الرقم القومي", "اسم الزوجه", "رقم القومي للزوجه", "الحاله", "العنوان", "رقم 1", "رقم 2", "", "", "", "", "", "تم استلام البون"];
     const idColumns = [2, 4]; // الرقم القومي للزوج والزوجة
 
     fileUpload.addEventListener('change', handleFile);
     downloadButton.addEventListener('click', downloadFile);
-    zoomIn.addEventListener('click', () => { currentZoom += 0.15; updateZoom(); });
-    zoomOut.addEventListener('click', () => { currentZoom = Math.max(0.6, currentZoom - 0.15); updateZoom(); });
-    copyImage.addEventListener('click', copyAsImage);
-    shareWhatsapp.addEventListener('click', shareOnWhatsapp);
 
     function setLoading(loading, text = "جاري السحر...") {
         loadingText.textContent = text;
         loading ? loadingSpinner.classList.remove('hidden') : loadingSpinner.classList.add('hidden');
-    }
-
-    function updateZoom() {
-        previewContainer.style.transform = `scale(${currentZoom})`;
-        previewContainer.style.transformOrigin = 'top right';
     }
 
     async function handleFile(event) {
@@ -180,18 +144,23 @@
             workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
             setLoading(true, 'تنظيف البيانات وتحويل الرقم القومي لأرقام فقط...');
-
             workbook.SheetNames.forEach(sheetName => {
                 const ws = workbook.Sheets[sheetName];
                 const oldData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false });
                 const dataWithoutHeader = oldData.slice(1) || [];
 
-                XLSX.utils.sheet_add_aoa(ws, [], { origin: 'A1' });
                 XLSX.utils.sheet_add_aoa(ws, [newHeader], { origin: 'A1' });
                 XLSX.utils.sheet_add_json(ws, dataWithoutHeader, { origin: 'A2', skipHeader: true });
 
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 const colWidths = [];
+
+                const filteredData = dataWithoutHeader.filter(row => row[14] === 'تم استلام البون');
+                const notReceivedData = dataWithoutHeader.filter(row => row[14] !== 'تم استلام البون');
+
+                const sortedData = [...filteredData.sort((a, b) => a[1].localeCompare(b[1])), ...notReceivedData];
+
+                XLSX.utils.sheet_add_json(ws, sortedData, { origin: 'A2', skipHeader: true });
 
                 for (let R = range.s.r; R <= range.e.r; ++R) {
                     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -200,18 +169,16 @@
 
                         if (cell.f) delete cell.f;
 
-                        // تنظيف الرقم القومي: أرقام فقط + لو فاضي يسيب فاضي (مش أصفار)
                         if (idColumns.includes(C) && R > 0) {
                             if (cell.v != null && cell.v !== '') {
                                 const raw = String(cell.v).trim();
                                 if (raw !== '') {
-                                    const cleanId = raw.replace(/\D/g, '').slice(0, 14); // أرقام فقط، أقصى 14
+                                    const cleanId = raw.replace(/\D/g, '').slice(0, 14);
                                     if (cleanId !== '') {
                                         cell.v = cleanId;
-                                        cell.t = 's'; // نص عشان ما يتحولش scientific
+                                        cell.t = 's';
                                         cell.z = '0';
                                     } else {
-                                        // لو بعد التنظيف مفيش أرقام → خليه فاضي
                                         cell.v = '';
                                         cell.t = 's';
                                     }
@@ -305,7 +272,6 @@
                 html += '</tbody></table>';
                 
                 previewContainer.innerHTML = html;
-                makeTableFakhma();
             };
             previewTabs.appendChild(tab);
         });
@@ -315,13 +281,6 @@
         } else {
             previewContainer.innerHTML = '<p class="text-center text-red-400">لا توجد بيانات!</p>';
         }
-    }
-
-    function makeTableFakhma() {
-        const table = previewContainer.querySelector('table');
-        if (!table) return;
-        table.querySelectorAll('th').forEach(th => th.classList.add('sticky-header'));
-        table.querySelectorAll('td:first-child, th:first-child').forEach(c => c.classList.add('sticky-col'));
     }
 
     function downloadFile() {
@@ -347,32 +306,6 @@
             console.error(e);
             alert('فشل التحميل! جرب كروم أو فايرفوكس');
         }
-    }
-
-    async function copyAsImage() {
-        copyImage.disabled = true;
-        copyImage.innerHTML = 'جاري النسخ السحري...';
-        try {
-            const canvas = await html2canvas(previewContainer, { scale: 3, backgroundColor: '#1e293b', useCORS: true });
-            canvas.toBlob(blob => {
-                navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                alert('تم نسخ الجدول بفخامة! الصقه في واتساب الآن ✨');
-            });
-        } catch (e) { 
-            alert('فشل النسخ، جرب لقطة شاشة يدوية'); 
-        }
-        copyImage.disabled = false;
-        copyImage.innerHTML = '<span>📋 نسخ للواتساب</span>';
-    }
-
-    function shareOnWhatsapp() {
-        if (!processedFileBlob) {
-            alert('ارفع ملف أولاً!');
-            return;
-        }
-        const url = URL.createObjectURL(processedFileBlob);
-        const waUrl = `https://api.whatsapp.com/send?text=ملف نظيف فاخر من قوافل محمد رجب 👑%0A${originalFileName}.xlsx%0A${encodeURIComponent(url)}`;
-        window.open(waUrl, '_blank');
     }
 </script>
 </body>
